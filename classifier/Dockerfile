@@ -3,7 +3,7 @@ FROM docker.io/seldonio/seldon-core-s2i-python37-ubi8:1.2.2
 COPY . /microservice
 WORKDIR /microservice
 
-RUN echo "---> Adding extra index url to pip..."
+RUN echo "---> Adding extra index url to pip... EXTRA_INDEX_URL: ${EXTRA_INDEX_URL} "
 
 RUN pip config set global.extra-index-url "${EXTRA_INDEX_URL}"
 RUN echo "---> Installing dependencies ..."
