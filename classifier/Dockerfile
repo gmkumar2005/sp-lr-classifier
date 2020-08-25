@@ -7,7 +7,7 @@ RUN echo "---> Adding extra index url to pip..."
 
 RUN pip config set global.extra-index-url "${EXTRA_INDEX_URL}"
 RUN echo "---> Installing dependencies ..."
-RUN pip install --find-links /whl -e .
+RUN pip install -r requirements.txt
 RUN echo "---> Installing licenses ..."
 RUN pip install pip-licenses
 RUN mkdir ./licenses && pip-licenses --from=mixed --format=csv --output-file=./licenses/license_info.csv && \
