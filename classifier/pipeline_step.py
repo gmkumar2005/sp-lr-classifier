@@ -2,48 +2,59 @@ import click
 import numpy as np
 import dill
 from sklearn.linear_model import LogisticRegression
+# from google.colab import files
+from os import listdir
+import pandas as pd
+import boto3
+import io
+from google.colab import files
+import numpy as np
 
 @click.command()
-@click.option('--in-path', default="/mnt/tfidf_vectors.data")
-@click.option('--labels-path', default="/mnt/labels.data")
-@click.option('--out-path', default="/mnt/lr_prediction.data")
-@click.option('--c-param', default=0.1)
-@click.option('--action', default="predict", 
-        type=click.Choice(['predict', 'train']))
-@click.option('--model-path', default="/mnt/lr_text.model")
+@click.option('--s3_endpoint_url', envvar='S3_ENDPOINT_URL')
+@click.option('--s3_access_key', envvar='S3_ACCESS_KEY')
+@click.option('--s3_secret_key', envvar='S3_SECRET_KEY')
+@click.option('--s3_bucket', envvar='S3_BUCKET')
+@click.option('--max_keys', envvar='MAX_KEYS',type=int)
 def run_pipeline(
-        in_path, 
-        labels_path,
-        out_path, 
-        c_param,
-        action,
-        model_path):
+        s3_endpoint_url, 
+        s3_access_key,
+        s3_secret_key, 
+        s3_bucket,
+        max_keys):
 
-    with open(in_path, 'rb') as in_f:
-        x = dill.load(in_f)
+    click.echo('s3_endpoint_url: %s' % s3_endpoint_url)
+    click.echo('s3_access_key: %s' % s3_access_key)
+    click.echo('s3_secret_key: %s' % s3_secret_key)
+    click.echo('s3_bucket: %s' % s3_bucket)
+    click.echo('pandas version: %s' % pd.__version__)
 
-    if action == "train":
-        lr_model = LogisticRegression(
-                C=0.1, 
-                solver='sag')
+    s3 = boto3.client(service_name='s3',aws_access_key_id = s3_access_key, aws_secret_access_key = s3_secret_key, endpoint_url=s3_endpoint_url)
 
-        with open(labels_path, "rb") as f:
-            labels = dill.load(f)
+    response = s3.list_objects(Bucket="frauddetection", Prefix="training_setA/", MaxKeys=max_keys)
 
-        lr_model.fit(x, labels)
+    click.echo('File names found :')   
+    for file in response["Contents"]:
+        click.echo('File names found : %s ' %file["Key"])
+        
+    df_list = []
 
-        with open(model_path, "wb") as model_f:
-            dill.dump(lr_model, model_f)
+    for file in response["Contents"]:
+        obj = s3.get_object(Bucket="frauddetection", Key=file["Key"])
+        obj_df = pd.read_csv(obj["Body"], sep='|')
+        df_list.append(obj_df)
 
-    elif action == "predict":
-        with open(model_path, "rb") as model_f:
-            lr_model = dill.load(model_f)
+    df = pd.concat(df_list)
+    click.echo('Head records            :' )
+    click.echo('%s' % df.head())
+    
 
-    y = lr_model.predict_proba(x)
-
-    with open(out_path, "wb") as out_f:
-        dill.dump(y, out_f)
-
+    train, validate, test = np.split(df.sample(frac=1), [int(.6*len(df)), int(.8*len(df))])
+    click.echo('length of the all data  : %s' % len(df))
+    click.echo('length of the train     : %s' % len(train))
+    click.echo('length of the validate  : %s' % len(validate))
+    click.echo('length of the test      : %s' % len(test))
+  
 if __name__ == "__main__":
     run_pipeline()
 
