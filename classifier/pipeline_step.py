@@ -43,7 +43,8 @@ def run_pipeline(
     response = s3.list_objects(Bucket="frauddetection", Prefix="training_setA/", MaxKeys=max_keys)
 
     click.echo('File names found :')   
-    for file in response["Contents"]:
+    toptenfiles = response[:10]
+    for file in toptenfiles["Contents"]:
         click.echo('File names found : %s ' %file["Key"])
         
     df_list = []
@@ -114,7 +115,8 @@ def run_pipeline(
     click.echo('bestmodel.score   %s    :' %bestmodel.score(X_train,y_train))
     response = s3.list_objects(Bucket="frauddetection", Prefix="uploaded/", MaxKeys=max_keys)
     click.echo('Model names found       :')   
-    for file in response["Contents"]:
+    toptenfiles = response[:10]
+    for file in toptenfiles["Contents"]:
         click.echo('File names found    : %s ' %file["Key"])
 
 if __name__ == "__main__":
