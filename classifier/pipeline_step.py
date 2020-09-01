@@ -34,7 +34,7 @@ def run_pipeline(
 
     click.echo('s3_endpoint_url: %s' % s3_endpoint_url)
     click.echo('s3_access_key: %s' % s3_access_key)
-    click.echo('s3_secret_key: %s' % s3_secret_key)
+    click.echo('s3_secret_key: masked')
     click.echo('s3_bucket: %s' % s3_bucket)
     click.echo('pandas version: %s' % pd.__version__)
 
