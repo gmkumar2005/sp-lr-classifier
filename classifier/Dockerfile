@@ -1,5 +1,5 @@
 ARG PROJECT
-FROM image-registry.openshift-image-registry.svc:5000/$PROJECT/sklearnserver-rest:1.2.2
+FROM image-registry.openshift-image-registry.svc:5000/$PROJECT/sklearnserver-rest:1.2.3
 # FROM seldon-core-s2i-python37-ubi8:1.2.2
 COPY . /microservice
 WORKDIR /microservice
